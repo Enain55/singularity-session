@@ -7,6 +7,15 @@ export PATH="$BIN:$PATH"
 export LD_LIBRARY_PATH="$PREFIX/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 export SINGULARITY_BLUR_ENABLED=1
 
+for drv in /sys/class/drm/card[0-9]*/device/driver; do
+    [ -e "$drv" ] || continue
+    case "$(basename "$(readlink -f "$drv")")" in
+        virtio_gpu|qxl|vmwgfx|bochs-drm|cirrus|vboxvideo|simpledrm)
+            export WLR_NO_HARDWARE_CURSORS="${WLR_NO_HARDWARE_CURSORS:-1}"
+            break ;;
+    esac
+done
+
 if [ -n "$GDM_SESSION_DBUS_ADDRESS" ] && [ -x "/usr/libexec/gdm-wayland-session" ]; then
     exec /usr/libexec/gdm-wayland-session "$BIN/labwc" -s "$BIN/singularity-desktop-session"
 else
